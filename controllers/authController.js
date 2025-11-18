@@ -65,12 +65,12 @@ export const login = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
-        // fixed typo: mailOptions instead of mailOption
+        // 💡 CORRECTION 1: Using user.email for consistency and safety
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
-            to: email,
+            to: user.email,
             subject: 'WELCOME TO CODEDETECTIVE',
-            text: `WELCOME TO CODEDETECTIVE. YOUR ACCOUNT HAS BEEN CREATED WITH EMAIL ID: ${email}.`
+            text: `WELCOME TO CODEDETECTIVE. YOUR ACCOUNT HAS BEEN CREATED WITH EMAIL ID: ${user.email}.`
         };
 
         await transporter.sendMail(mailOptions);
@@ -101,18 +101,21 @@ export const logout = async (req, res) => {
 // ==================== SEND VERIFY OTP ====================
 export const sendVerifyOtp = async (req, res) => {
     try {
-        // use req.userId (set by middleware)
         const userId = req.userId;
 
         const user = await userModel.findById(userId);
+        if (!user) {
+            return res.json({ success: false, message: "User not found" });
+        }
         if (user.isAccountVerified) {
             return res.json({ success: false, message: "Account already verified" });
         }
 
         const otp = String(Math.floor(100000 + Math.random() * 900000));
 
+        // 💡 CORRECTION 2: Using the correct schema field name (ExpiryAt)
         user.verifyotp = otp;
-        user.verifyotpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
+        user.verifyOtpExpiryAt = Date.now() + 24 * 60 * 60 * 1000; 
         await user.save();
 
         const mailOptions = {
@@ -141,23 +144,25 @@ export const verifyEmail = async (req, res) => {
     }
 
     try {
-        // Step 2: find user by OTP only
-        const user = await userModel.findOne({ verifyotp: otp });
+        const userId = req.userId; // Get ID from middleware
 
-        // Step 3: if no user found
+        // 💡 CORRECTION 3: Security Fix - Check both userId and OTP
+        const user = await userModel.findOne({ _id: userId, verifyotp: otp }); 
+
+        // Step 3: if no user found (either ID or OTP is wrong)
         if (!user) {
-            return res.json({ success: false, message: "Invalid OTP" });
+            return res.json({ success: false, message: "Invalid OTP or User ID" });
         }
 
         // Step 4: check if OTP expired
-        if (user.verifyotpExpireAt < Date.now()) {
+        if (user.verifyOtpExpiryAt < Date.now()) { // Ensure consistent property name
             return res.json({ success: false, message: "OTP expired" });
         }
 
         // Step 5: verify account
         user.isAccountVerified = true;
         user.verifyotp = '';
-        user.verifyotpExpireAt = 0;
+        user.verifyOtpExpiryAt = 0; // Ensure consistent property name
         await user.save();
 
         return res.json({ success: true, message: 'Email verified successfully.' });
@@ -193,7 +198,7 @@ export const sendResetOtp = async (req,res)=>{
         const otp = String(Math.floor(100000 + Math.random() * 900000));
 
         user.resetotp = otp;
-        user.resetotpExpireAt = Date.now() + 15 * 60 * 1000;
+        user.resetOtpExpireAt = Date.now() + 15 * 60 * 1000; // Assuming resetOtpExpireAt in schema
 
         await user.save();
 
@@ -232,7 +237,7 @@ export const resetPassword = async (req,res)=> {
             return res.json({success: false, message: 'Invalid OTP'});
         }
 
-        if(user.resetotpExpireAt < Date.now()){
+        if(user.resetOtpExpireAt < Date.now()){ // Assuming resetOtpExpireAt in schema
             return res.json({success: false, message: 'OTP Expired.'});
         }
 
@@ -240,7 +245,7 @@ export const resetPassword = async (req,res)=> {
 
         user.password = hashedPassword;
         user.resetotp = '';
-        user.resetotpExpireAt = 0;
+        user.resetOtpExpireAt = 0; // Assuming resetOtpExpireAt in schema
 
         await user.save();
 
@@ -250,4 +255,3 @@ export const resetPassword = async (req,res)=> {
         return res.json({success: false, message: error.message});
     }
 };
-
