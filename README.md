@@ -30,3 +30,35 @@ A robust, production-ready authentication system built with the MERN stack (Mong
 * **Email Services:** Nodemailer (SMTP/Brevo)
 
 ---
+
+## ⚙️ Installation and Setup
+
+Follow these steps to get the project running locally.
+
+### 1. Backend Setup
+
+1.  Navigate to the server directory:
+    ```bash
+    cd server
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Create a `.env` file in the `server` folder and add the following variables:
+    ```env
+    PORT=4000
+    MONGODB_URL='your_mongodb_connection_string'
+    JWT_SECRET='your_super_secret_key'
+    NODE_ENV='development'
+    
+    # Email Service Configuration (e.g., Brevo/SendGrid)
+    SMTP_USER='your_smtp_user'
+    SMTP_PASSWORD='your_smtp_password'
+    SENDER_EMAIL='your_sender_email@example.com'
+    ```
+4.  Start the server:
+    ```bash
+    npm run server
+    ```
+    *The server will start on http://localhost:4000*
