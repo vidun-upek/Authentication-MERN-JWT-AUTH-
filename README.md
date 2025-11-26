@@ -57,8 +57,29 @@ Follow these steps to get the project running locally.
     SMTP_PASSWORD='your_smtp_password'
     SENDER_EMAIL='your_sender_email@example.com'
     ```
-4.  Start the server:
-    ```bash
-    npm run server
-    ```
-    *The server will start on http://localhost:4000*
+
+
+### 2. Frontend Setup
+Navigate to the client directory:
+
+Bash
+
+cd ../client
+Install dependencies:
+
+Bash
+
+npm install
+Create a .env file in the client folder and add the following variable. This tells the frontend where the backend API is located:
+
+Code snippet
+
+VITE_SERVER_URL='http://localhost:4000/api/v1'
+Start the client application:
+
+Bash
+
+npm run dev
+The client application will typically start on http://localhost:5173 (or another port specified by Vite).
+
+
